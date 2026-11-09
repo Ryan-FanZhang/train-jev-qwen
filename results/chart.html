@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Model Size Results</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1: #fcfcfb;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted: #7a7974;
+    --grid: #e6e5e1;
+    --axis: #b9b8b2;
+    --series-1: #2a78d6;  /* fine-tuned on business data */
+    --series-2: #eb6834;  /* published, no fine-tuning */
+  }
+  html, body { margin: 0; background: var(--surface-1); }
+  body { width: 1200px; height: 1200px; font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; color: var(--text-primary); }
+  .card { box-sizing: border-box; width: 1200px; height: 1200px; padding: 72px 80px 56px; display: flex; flex-direction: column; }
+  h1 { font-size: 58px; line-height: 1.08; margin: 0 0 18px; font-weight: 700; letter-spacing: -0.5px; }
+  .sub { font-size: 25px; line-height: 1.4; color: var(--text-secondary); margin: 0 0 28px; }
+  .legend { display: flex; gap: 40px; font-size: 24px; color: var(--text-secondary); margin-bottom: 8px; }
+  .legend span { display: inline-flex; align-items: center; gap: 12px; }
+  .sw { width: 18px; height: 18px; border-radius: 50%; display: inline-block; }
+  svg { flex: 1; width: 100%; overflow: visible; }
+  svg text { font-family: inherit; }
+  .foot { font-size: 19px; line-height: 1.5; color: var(--text-muted); margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Bigger stopped helping at 4B.<br>Fine-tuning mattered more.</h1>
+  <p class="sub">A private yes/no text classification task:<br>agreement with the teacher's labels on 703 held-out examples</p>
+  <div class="legend">
+    <span><i class="sw" style="background:var(--series-1)"></i>Fine-tuned on my data</span>
+    <span><i class="sw" style="background:var(--series-2)"></i>Published model, no fine-tuning</span>
+  </div>
+  <svg id="c" viewBox="0 0 1040 640" role="img" aria-label="Agreement by model size"></svg>
+  <div class="foot">Qwen3.5 0.8B / 2B / 4B and Qwen3.8 27B with LoRA (train-jev) · trained on NeSI H100 GPUs<br>95% confidence interval ≈ ±2 pts, so 4B and 27B are a tie · seconds = time to score all 703 examples on one H100</div>
+</div>
+<script>
+const W = 1040, H = 640, m = {l: 92, r: 40, t: 30, b: 70};
+const x = s => m.l + (Math.log(s) - Math.log(0.6)) / (Math.log(40) - Math.log(0.6)) * (W - m.l - m.r);
+const y = v => m.t + (96.5 - v) / (96.5 - 88.5) * (H - m.t - m.b);
+const ft = [
+  {s: 0.8, v: 92.60, ci: 1.9, t: "2.8 s", name: "0.8B"},
+  {s: 2,   v: 92.46, ci: 2.0, t: "2.5 s", name: "2B"},
+  {s: 4,   v: 95.02, ci: 1.6, t: "5.6 s", name: "4B"},
+  {s: 27,  v: 94.88, ci: 1.6, t: "39.4 s", name: "27B"},
+];
+const base = [
+  {s: 4,  v: 89.62, ci: 2.3, t: "6.5 s"},
+  {s: 27, v: 92.03, ci: 2.0, t: "27.5 s"},
+];
+let g = "";
+for (let v = 89; v <= 96; v++) {
+  g += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)" stroke-width="1"/>`;
+  g += `<text x="${m.l - 16}" y="${y(v) + 8}" text-anchor="end" font-size="22" fill="var(--text-muted)">${v}%</text>`;
+}
+for (const d of ft) {
+  g += `<text x="${x(d.s)}" y="${H - m.b + 40}" text-anchor="middle" font-size="24" fill="var(--text-secondary)">${d.name}</text>`;
+}
+g += `<text x="${(m.l + W - m.r) / 2}" y="${H - 4}" text-anchor="middle" font-size="21" fill="var(--text-muted)">Model size (parameters, log scale)</text>`;
+// plateau band
+g += `<rect x="${x(4) - 30}" y="${y(96.3)}" width="${x(27) - x(4) + 60}" height="${y(93.6) - y(96.3)}" rx="14" fill="var(--series-1)" fill-opacity="0.07"/>`;
+g += `<text x="${(x(4) + x(27)) / 2}" y="${y(96.3) + 32}" text-anchor="middle" font-size="22" font-weight="600" fill="var(--text-secondary)">7× slower, same score</text>`;
+// fine-tuning gains
+for (let i = 0; i < 2; i++) {
+  const b = base[i], f = ft[i + 2], gain = (f.v - b.v).toFixed(1);
+  g += `<line x1="${x(b.s)}" x2="${x(b.s)}" y1="${y(b.v) - 16}" y2="${y(f.v) + 16}" stroke="var(--text-muted)" stroke-width="2" stroke-dasharray="5 6"/>`;
+}
+// fine-tuned line
+g += `<polyline points="${ft.map(d => `${x(d.s)},${y(d.v)}`).join(" ")}" fill="none" stroke="var(--series-1)" stroke-width="3" stroke-linejoin="round"/>`;
+function dot(d, color, side, labelBelow) {
+  let s = `<circle cx="${x(d.s)}" cy="${y(d.v)}" r="11" fill="${color}" stroke="var(--surface-1)" stroke-width="3"/>`;
+  const tx = x(d.s) + side * 24, anchor = side > 0 ? "start" : "end";
+  const ty = y(d.v) + (labelBelow === "above" ? -52 : labelBelow ? 30 : -6);
+  s += `<text x="${tx}" y="${ty}" text-anchor="${anchor}" font-size="27" font-weight="700" fill="var(--text-primary)">${d.v.toFixed(1)}%</text>`;
+  s += `<text x="${tx}" y="${ty + 28}" text-anchor="${anchor}" font-size="21" fill="var(--text-muted)">${d.t}</text>`;
+  return s;
+}
+g += dot(ft[0], "var(--series-1)", 1, true);
+g += dot(ft[1], "var(--series-1)", 1, true);
+g += dot(ft[2], "var(--series-1)", -1, "above");
+g += dot(ft[3], "var(--series-1)", 1, "above");
+g += dot(base[0], "var(--series-2)", 1, false);
+g += dot(base[1], "var(--series-2)", 1, false);
+// gain labels
+g += `<text x="${x(4) + 24}" y="${y(92.2)}" font-size="22" font-weight="600" fill="var(--text-secondary)">+5.4 pts from</text>`;
+g += `<text x="${x(4) + 24}" y="${y(92.2) + 27}" font-size="22" font-weight="600" fill="var(--text-secondary)">fine-tuning</text>`;
+g += `<text x="${x(27) - 18}" y="${y(93.3)}" text-anchor="end" font-size="22" font-weight="600" fill="var(--text-secondary)">+2.9 pts</text>`;
+document.getElementById("c").innerHTML = g;
+</script>
+</body>
+</html>

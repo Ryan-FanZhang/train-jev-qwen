@@ -1,0 +1,9 @@
+train-jev-qwen
+Copyright 2026 the train-jev-qwen authors
+
+This project runs, but does not include or modify, train-jev
+(https://github.com/shibing624/train-jev), Copyright shibing624, licensed under the Apache License 2.0.
+The training algorithm, evaluation and serving code are part of train-jev.
+
+Base models (Qwen), the published train-jev LoRA adapters and the jev-distill corpus are downloaded from
+Hugging Face at run time and are subject to their own licences.

@@ -1,0 +1,22 @@
+# Data never goes into this repository: only examples/synthetic/ is tracked.
+work/
+data/
+*.csv
+!examples/synthetic/*.csv
+*.jsonl
+!examples/synthetic/labels/*.jsonl
+*.zip
+
+# Training outputs and logs
+runs/
+logs/
+*.log
+*.out
+
+# Python / editors
+__pycache__/
+*.pyc
+.venv/
+.env
+.vscode/
+.idea/
