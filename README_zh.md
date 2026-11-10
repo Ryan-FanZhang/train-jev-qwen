@@ -83,10 +83,10 @@ bash 01_download.sh
 
 | 模型 | 依次运行 |
 |---|---|
-| 4B | `MODEL=4b bash submit.sh train` → `MODEL=4b bash submit.sh eval` |
-| 27B | `MODEL=27b bash 01_download.sh` → `MODEL=27b bash submit.sh train` → `MODEL=27b TIME=04:00:00 bash submit.sh eval` |
 | 0.8B | `MODEL=0.8b bash submit.sh distill` → `MODEL=0.8b bash submit.sh train` → `MODEL=0.8b bash submit.sh eval` |
 | 2B | `MODEL=2b bash submit.sh distill` → `MODEL=2b bash submit.sh train` → `MODEL=2b bash submit.sh eval` |
+| 4B | `MODEL=4b bash submit.sh train` → `MODEL=4b bash submit.sh eval` |
+| 27B | `MODEL=27b bash 01_download.sh` → `MODEL=27b bash submit.sh train` → `MODEL=27b TIME=04:00:00 bash submit.sh eval` |
 
 最后汇总：`python3 scripts/summarize_results.py /nesi/project/$NESI_PROJECT/$USER/runs`
 

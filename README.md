@@ -122,10 +122,10 @@ MODEL=27b bash 01_download.sh            # also Qwen3.8-27B and the 27B adapter,
 
 | Model | Commands, in order |
 |---|---|
-| 4B | `MODEL=4b bash submit.sh train` → `MODEL=4b bash submit.sh eval` |
-| 27B | `MODEL=27b bash submit.sh train` → `MODEL=27b TIME=04:00:00 bash submit.sh eval` |
 | 0.8B | `MODEL=0.8b bash submit.sh distill` → `MODEL=0.8b bash submit.sh train` → `MODEL=0.8b bash submit.sh eval` |
 | 2B | `MODEL=2b bash submit.sh distill` → `MODEL=2b bash submit.sh train` → `MODEL=2b bash submit.sh eval` |
+| 4B | `MODEL=4b bash submit.sh train` → `MODEL=4b bash submit.sh eval` |
+| 27B | `MODEL=27b bash submit.sh train` → `MODEL=27b TIME=04:00:00 bash submit.sh eval` |
 
 Run `bash submit.sh smoke` (with the same `MODEL=`) first to test a configuration in 5 steps. A job that
 times out resumes when the same command is submitted again. Then:
